@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+opencv-python
+pytesseract
+scikit-learn
+matplotlib
+plotly
+weasyprint
+reportlab
+pydantic
+sqlalchemy
