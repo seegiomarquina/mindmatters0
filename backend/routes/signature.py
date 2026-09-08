@@ -1,28 +1,50 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, status
-from schemas.schemas import SignatureAnalysisResponse
-from models.signature_model import signature_analyzer
-from utils.preprocessing import load_image_from_bytes
+from typing import Optional
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from schemas.signature import SignatureAnalysisResponse
+from services.image_processor import validate_and_save_upload, decode_image_from_path
+from services.signature_analyzer import signature_analyzer
+from services.auth_service import get_current_user_optional
+from db.database import get_db
+from db.models import User, Sample
 
-router = APIRouter(prefix="/analyze", tags=["Signature"])
+router = APIRouter(tags=["Signature Analysis"])
 
-@router.post("/signature", response_model=SignatureAnalysisResponse)
-async def analyze_signature(file: UploadFile = File(...)):
-    if not (file.content_type and file.content_type.startswith("image/")):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Uploaded file must be a valid image (PNG, JPEG, etc.)"
-        )
-    
+@router.post("/signature/analyze", response_model=SignatureAnalysisResponse)
+@router.post("/analyze/signature", response_model=SignatureAnalysisResponse)
+async def analyze_signature(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    user_id = current_user.id if current_user else None
+
+    stored_filename, file_path, file_size, mime_type = validate_and_save_upload(
+        file=file,
+        sample_type="signature"
+    )
+
+    sample = Sample(
+        user_id=user_id,
+        filename=file.filename or stored_filename,
+        stored_filename=stored_filename,
+        file_path=file_path,
+        file_size=file_size,
+        mime_type=mime_type,
+        sample_type="signature"
+    )
+    db.add(sample)
+    db.commit()
+    db.refresh(sample)
+
     try:
-        contents = await file.read()
-        if len(contents) == 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Empty image file received"
-            )
-            
-        img = load_image_from_bytes(contents)
-        result = signature_analyzer.analyze(img)
+        img = decode_image_from_path(file_path)
+        result = signature_analyzer.analyze(
+            img=img,
+            sample_record=sample,
+            user_id=user_id,
+            db=db
+        )
         return result
     except HTTPException:
         raise

@@ -1,7 +1,9 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
+import { PenCursor } from './components/PenCursor';
+import { AntigravityController } from './components/AntigravityController';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { CategoryStrip } from './components/CategoryStrip';
+import { StylesSection } from './components/StylesSection';
 import { CoreServices } from './components/CoreServices';
 import { HowItWorks } from './components/HowItWorks';
 import { ReportSection } from './components/ReportSection';
@@ -31,12 +33,20 @@ export const App: React.FC = () => {
   });
 
   const [activeModal, setActiveModal] = useState<'signature' | 'typing' | 'handwriting' | 'reports' | null>(null);
+  const [initialHandwritingFile, setInitialHandwritingFile] = useState<File | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const handleHeroAnalyzeChoice = (mode: 'signature' | 'typing' | 'handwriting', file?: File) => {
+    if (file) {
+      setInitialHandwritingFile(file);
+    }
+    setActiveModal(mode);
   };
 
   const handleSignatureComplete = (result: SignatureAnalysisResponse) => {
@@ -48,7 +58,7 @@ export const App: React.FC = () => {
         mindScore: newScore
       };
     });
-    showToast('✨ Signature analyzed successfully!');
+    showToast('✨ Signature graphology calibrated successfully!');
   };
 
   const handleTypingComplete = (result: TypingAnalysisResponse) => {
@@ -60,7 +70,7 @@ export const App: React.FC = () => {
         mindScore: newScore
       };
     });
-    showToast('⚡ Typing rhythm patterns calibrated!');
+    showToast('⚡ Keystroke dynamics & cadence calibrated!');
   };
 
   const handleHandwritingComplete = (result: HandwritingAnalysisResponse) => {
@@ -72,7 +82,7 @@ export const App: React.FC = () => {
         mindScore: newScore
       };
     });
-    showToast('📝 Handwriting morphology processed!');
+    showToast('📝 10+ measurable handwriting features extracted!');
   };
 
   const handleDownloadReport = async () => {
@@ -93,78 +103,82 @@ export const App: React.FC = () => {
 
       const downloadLink = document.createElement('a');
       downloadLink.href = getReportDownloadUrl(res.report_id);
-      downloadLink.setAttribute('download', `MindMatters_Report_${res.report_id}.pdf`);
+      downloadLink.setAttribute('download', `MindMatters_Dossier_${res.report_id}.pdf`);
       document.body.appendChild(downloadLink);
       downloadLink.click();
       downloadLink.remove();
 
-      showToast(`📄 Report ${res.report_id} downloaded!`);
+      showToast(`📄 Dossier ${res.report_id} downloaded successfully!`);
     } catch (err: any) {
-      showToast(`❌ Failed to compile report: ${err.message}`);
+      showToast(`❌ Failed to compile dossier: ${err.message}`);
     } finally {
       setIsGeneratingPdf(false);
     }
   };
 
-  const handleCategorySelect = (id: string) => {
-    if (id === 'signature') setActiveModal('signature');
-    else if (id === 'typing') setActiveModal('typing');
-    else if (id === 'handwriting') setActiveModal('handwriting');
-    else if (id === 'report') setActiveModal('reports');
-  };
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b1120] text-slate-100 relative selection:bg-teal-500/30 selection:text-teal-200">
-      
+    <div className="min-h-screen flex flex-col bg-[#F4ECDD] text-[#1B1B2F] relative selection:bg-[#C9A24B]/40 selection:text-[#1B1B2F]">
+      {/* 1. Custom Inking Pen Cursor & Trail */}
+      <PenCursor />
+
+      {/* 2. Antigravity Controller (Parallax Physics) */}
+      <AntigravityController />
+
+      {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl bg-slate-900 border border-teal-500/50 shadow-xl shadow-teal-950/60 text-xs sm:text-sm font-semibold text-teal-300 animate-bounce">
+        <div className="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-sm bg-[#1B1B2F] border-2 border-[#C9A24B] shadow-2xl text-xs sm:text-sm font-cinzel font-bold text-[#F4ECDD] animate-bounce">
           {toastMessage}
         </div>
       )}
 
-      {/* 1. STICKY NAVBAR */}
+      {/* 3. Sticky Classical Navbar */}
       <Navbar
         onOpenSignature={() => setActiveModal('signature')}
         onOpenTyping={() => setActiveModal('typing')}
-        onOpenHandwriting={() => setActiveModal('handwriting')}
+        onOpenHandwriting={() => {
+          setInitialHandwritingFile(null);
+          setActiveModal('handwriting');
+        }}
         onOpenReports={() => setActiveModal('reports')}
       />
 
-      {/* 2. HERO SECTION */}
+      {/* 4. Classical Calligraphy Hero */}
       <Hero
-        onAnalyzeChoice={(mode) => setActiveModal(mode)}
+        onAnalyzeChoice={handleHeroAnalyzeChoice}
       />
 
-      {/* 3. CATEGORY ICON STRIP */}
-      <CategoryStrip
-        onSelectCategory={handleCategorySelect}
-      />
+      {/* 5. Six Traditions, Six Temperaments Scroller */}
+      <StylesSection />
 
-      {/* 4. CORE SERVICES (3 Large Feature Cards) */}
+      {/* 6. Core Behavioral Engines */}
       <CoreServices
         onOpenSignature={() => setActiveModal('signature')}
         onOpenTyping={() => setActiveModal('typing')}
-        onOpenHandwriting={() => setActiveModal('handwriting')}
+        onOpenHandwriting={() => {
+          setInitialHandwritingFile(null);
+          setActiveModal('handwriting');
+        }}
         signatureResult={assessmentState.signatureResult}
         typingResult={assessmentState.typingResult}
         handwritingResult={assessmentState.handwritingResult}
       />
 
-      {/* 5. HOW IT WORKS */}
+      {/* 7. Methodology / How It Works */}
       <HowItWorks />
 
-      {/* 6. REPORT DOWNLOAD SECTION */}
+      {/* 8. Synthesized Intelligence Dossier */}
       <ReportSection
         signatureResult={assessmentState.signatureResult}
         typingResult={assessmentState.typingResult}
         handwritingResult={assessmentState.handwritingResult}
         mindScore={assessmentState.mindScore}
         onDownloadReport={handleDownloadReport}
+        onOpenReportModal={() => setActiveModal('reports')}
         isGeneratingPdf={isGeneratingPdf}
         latestReportId={assessmentState.latestReportId}
       />
 
-      {/* 7. FOOTER */}
+      {/* 9. Footer */}
       <Footer />
 
       {/* Modals */}
@@ -182,8 +196,12 @@ export const App: React.FC = () => {
 
       <HandwritingModal
         isOpen={activeModal === 'handwriting'}
-        onClose={() => setActiveModal(null)}
+        onClose={() => {
+          setActiveModal(null);
+          setInitialHandwritingFile(null);
+        }}
         onAnalysisComplete={handleHandwritingComplete}
+        initialFile={initialHandwritingFile}
       />
 
       <ReportViewerModal
@@ -193,7 +211,6 @@ export const App: React.FC = () => {
         onDownloadPdf={handleDownloadReport}
         isGeneratingPdf={isGeneratingPdf}
       />
-
     </div>
   );
 };

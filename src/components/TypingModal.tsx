@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
-import { X, Check, RotateCcw, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Check, RotateCcw, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { analyzeTypingApi } from '../services/api';
 import { KeystrokeItem, TypingAnalysisResponse } from '../types';
 
@@ -90,47 +90,47 @@ export const TypingModal: React.FC<TypingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl shadow-cyan-950/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1B1B2F]/70 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-xl rounded-sm bg-[#F4ECDD] border-2 border-[#1B1B2F] p-6 sm:p-8 shadow-2xl shadow-[#1B1B2F]/40">
         
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between pb-4 border-b border-[#1B1B2F]/15">
+          <div className="flex items-center gap-3">
             <span className="text-2xl">⌨️</span>
             <div>
-              <h3 className="text-lg font-bold text-slate-100">
-                Typing Pattern Analysis
+              <h3 className="font-cinzel font-bold text-lg text-[#1B1B2F]">
+                Typing Rhythm Dynamics
               </h3>
-              <p className="text-xs text-slate-400">
-                Type the passage naturally below to measure cadence and cognitive rhythm
+              <p className="text-xs text-[#5B5B70] font-lora italic">
+                Type the classical passage naturally to measure dwell latency and cognitive cadence
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-sm text-[#1B1B2F]/60 hover:text-[#1B1B2F] hover:bg-[#1B1B2F]/5 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMessage && (
-          <div className="mt-4 p-3 rounded-xl bg-rose-950/50 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
+          <div className="mt-4 p-3 rounded-sm bg-[#A13D3D]/10 border border-[#A13D3D]/30 text-[#A13D3D] text-xs flex items-center gap-2 font-lora">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
-        <div className="my-5 p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-          <div className="text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-1 flex items-center justify-between">
+        <div className="my-5 p-4 rounded-sm bg-[#E8DFC9]/70 border border-[#8B5E34]/30 shadow-inner">
+          <div className="text-xs font-cinzel font-bold uppercase tracking-wider text-[#8B5E34] mb-1.5 flex items-center justify-between">
             <span>Target Passage</span>
             <button
               onClick={() => setPassageIndex((prev) => (prev + 1) % PASSAGES.length)}
-              className="text-[11px] text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
+              className="text-[11px] text-[#A13D3D] hover:underline transition-colors cursor-pointer font-cinzel"
             >
               Switch passage ↻
             </button>
           </div>
-          <p className="text-sm sm:text-base text-slate-200 font-serif leading-relaxed italic">
+          <p className="text-sm sm:text-base text-[#1B1B2F] font-lora leading-relaxed italic">
             "{targetPassage}"
           </p>
         </div>
@@ -144,9 +144,9 @@ export const TypingModal: React.FC<TypingModalProps> = ({
             onKeyDown={handleKeyDown}
             onKeyUp={handleKeyUp}
             placeholder="Start typing the passage here..."
-            className="w-full p-3.5 rounded-2xl bg-slate-950 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-colors resize-none font-mono"
+            className="w-full p-3.5 rounded-sm bg-[#F4ECDD] border-2 border-[#8B5E34]/40 text-sm text-[#1B1B2F] placeholder:text-[#7A7A8F] placeholder:italic focus:outline-none focus:border-[#1B1B2F] transition-colors resize-none font-lora shadow-inner"
           />
-          <div className="flex items-center justify-between text-xs text-slate-400 mt-1 px-1">
+          <div className="flex items-center justify-between text-xs text-[#6B6B80] font-lora mt-1 px-1 italic">
             <span>Keystrokes recorded: {keystrokes.length}</span>
             <span>Chars: {typedText.length} / {targetPassage.length}</span>
           </div>
@@ -155,16 +155,16 @@ export const TypingModal: React.FC<TypingModalProps> = ({
         <div className="flex items-center justify-between pt-2">
           <button
             onClick={handleReset}
-            className="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 rounded-sm text-xs font-cinzel font-bold text-[#1B1B2F] bg-[#E8DFC9] hover:bg-[#D9CEB4] border border-[#1B1B2F]/20 transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5 text-[#8B5E34]" />
             <span>Restart</span>
           </button>
 
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-sm text-xs font-cinzel font-bold text-[#1B1B2F]/70 hover:text-[#1B1B2F] transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -172,17 +172,17 @@ export const TypingModal: React.FC<TypingModalProps> = ({
             <button
               onClick={handleAnalyze}
               disabled={isLoading || keystrokes.length < 5}
-              className="px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 shadow-md shadow-cyan-500/25 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-sm font-cinzel text-xs font-bold tracking-wider text-[#F4ECDD] bg-[#A13D3D] hover:bg-[#832F2F] shadow-md shadow-[#A13D3D]/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                  <span>Analyzing Cadence...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-[#F4ECDD]" />
+                  <span>Calibrating Rhythm...</span>
                 </>
               ) : (
                 <>
-                  <Check className="w-4 h-4 text-slate-950" />
-                  <span>Analyze Typing</span>
+                  <Check className="w-4 h-4 text-[#F4ECDD]" />
+                  <span>Analyze Cadence</span>
                 </>
               )}
             </button>

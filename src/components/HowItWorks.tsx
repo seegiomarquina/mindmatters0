@@ -1,46 +1,40 @@
-﻿import React from 'react';
+import React from 'react';
 import { Layers, Sliders, FileCheck2, ArrowRight } from 'lucide-react';
 
 export const HowItWorks: React.FC = () => {
   const steps = [
     {
-      step: '01',
-      title: 'Choose a mode',
-      description: 'Select one or more biometric streams: your signature stroke, live keyboard cadence, or regular handwritten notes.',
-      icon: <Layers className="w-6 h-6 text-teal-400" />,
-      accent: 'from-teal-500/20 to-teal-500/5',
-      border: 'border-teal-500/30'
+      step: 'I',
+      title: 'Select Modality',
+      description: 'Choose one or more biometric streams: signature strokes, live keystroke timing, or handwritten notebook scans.',
+      icon: <Layers className="w-5 h-5 text-[#8B5E34]" />
     },
     {
-      step: '02',
-      title: 'Give your input',
-      description: 'Draw on the digital canvas, type a short passage naturally, or upload a photo of your notebook page.',
-      icon: <Sliders className="w-6 h-6 text-cyan-400" />,
-      accent: 'from-cyan-500/20 to-cyan-500/5',
-      border: 'border-cyan-500/30'
+      step: 'II',
+      title: 'Submit Behavioral Stream',
+      description: 'Draw directly on the digital parchment, type the classical passage, or upload a photo of your notebook.',
+      icon: <Sliders className="w-5 h-5 text-[#8B5E34]" />
     },
     {
-      step: '03',
-      title: 'Get your report',
-      description: 'Our multi-modal neural and graphological engine aggregates all signals into a unified, downloadable Mind Report with actionable insights.',
-      icon: <FileCheck2 className="w-6 h-6 text-indigo-400" />,
-      accent: 'from-indigo-500/20 to-indigo-500/5',
-      border: 'border-indigo-500/30'
+      step: 'III',
+      title: 'Receive Synthesized Dossier',
+      description: 'Our multimodal engine fuses all signals into a composite Mind Score and downloadable clinical vector PDF.',
+      icon: <FileCheck2 className="w-5 h-5 text-[#A13D3D]" />
     }
   ];
 
   return (
-    <section id="how-it-works" className="py-20 bg-slate-950/60 border-t border-slate-900 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="how-it-works" className="py-24 relative border-t border-[#1B1B2F]/10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-12">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-bold uppercase tracking-widest text-teal-400 bg-teal-950/60 border border-teal-800/50 px-3 py-1 rounded-full">
-            Streamlined Methodology
+          <span className="eyebrow">
+            Methodology
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 mt-4 mb-3">
+          <h2 className="font-cinzel-dec font-bold text-3xl sm:text-4xl text-[#1B1B2F] mt-3 mb-3 tracking-wide">
             How It Works
           </h2>
-          <p className="text-slate-400 text-sm sm:text-base">
-            From initial behavioral input to comprehensive neural synthesis in three frictionless steps.
+          <p className="text-[#5B5B70] text-sm sm:text-base font-lora">
+            From raw behavioral kinetics to multimodal synthesis in three disciplined steps.
           </p>
         </div>
 
@@ -48,29 +42,29 @@ export const HowItWorks: React.FC = () => {
           {steps.map((item, idx) => (
             <div
               key={item.step}
-              className={`relative rounded-2xl bg-gradient-to-b ${item.accent} border ${item.border} p-8 flex flex-col justify-between`}
+              className="relative rounded-sm bg-white/75 backdrop-blur-sm border border-[#1B1B2F]/15 p-8 flex flex-col justify-between shadow-sm hover:shadow-md transition-all"
             >
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 rounded-sm bg-[#E8DFC9] border border-[#8B5E34]/30 flex items-center justify-center shadow-inner">
                     {item.icon}
                   </div>
-                  <span className="text-2xl font-black font-mono text-slate-600">
+                  <span className="text-2xl font-cinzel font-black text-[#8B5E34]/60">
                     {item.step}
                   </span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-slate-100 mb-2">
+                <h3 className="font-cinzel font-bold text-lg text-[#1B1B2F] mb-2">
                   {item.title}
                 </h3>
-                <p className="text-sm text-slate-300/80 leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#5B5B70] font-lora leading-relaxed">
                   {item.description}
                 </p>
               </div>
 
               {idx < steps.length - 1 && (
                 <div className="hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 z-10">
-                  <div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400">
+                  <div className="w-8 h-8 rounded-full bg-[#F4ECDD] border border-[#1B1B2F]/20 flex items-center justify-center text-[#8B5E34] shadow-sm">
                     <ArrowRight className="w-4 h-4" />
                   </div>
                 </div>

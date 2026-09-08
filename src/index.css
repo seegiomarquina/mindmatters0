@@ -2,145 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 187 92% 43%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 25%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 22%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 258 90% 66%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 26%;
-    --input: 217 33% 26%;
-    --ring: 187 92% 43%;
-    --radius: 0.85rem;
-  }
+:root {
+  --ink: #1B1B2F;
+  --ink-soft: #262640;
+  --parchment: #F4ECDD;
+  --parchment-dim: #E8DFC9;
+  --sepia: #8B5E34;
+  --wax: #A13D3D;
+  --gilt: #C9A24B;
+  --faded-blue: #3B4B6B;
+  --line: rgba(27,27,47,0.12);
+  --shadow: 0 18px 40px rgba(27,27,47,0.14);
 }
 
 @layer base {
   * {
-    @apply border-border;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-[#0b1120] text-slate-100 antialiased selection:bg-teal-500/30 selection:text-teal-200;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-color: var(--parchment);
+    color: var(--ink);
+    font-family: 'Lora', Georgia, serif;
+    overflow-x: hidden;
+  }
+
+  /* Ancient Parchment Grid & Grain Overlay */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: 
+      repeating-linear-gradient(to bottom, transparent 0 39px, rgba(59,75,107,0.05) 39px 40px),
+      radial-gradient(rgba(27,27,47,0.03) 1px, transparent 1px);
+    background-size: 100% 40px, 3px 3px;
+    opacity: 0.8;
   }
 }
 
-/* ANIMATION 1: Hero gradient shimmer */
-@keyframes text-shimmer {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+/* Custom Font Helpers */
+.font-cinzel { font-family: 'Cinzel', serif; }
+.font-cinzel-dec { font-family: 'Cinzel Decorative', 'Cinzel', serif; }
+.font-lora { font-family: 'Lora', serif; }
+.font-cormorant { font-family: 'Cormorant Garamond', serif; }
+.font-playfair { font-family: 'Playfair Display', serif; }
+.font-sacramento { font-family: 'Sacramento', cursive; }
+.font-great-vibes { font-family: 'Great Vibes', cursive; }
+.font-caveat { font-family: 'Caveat', cursive; }
+.font-special-elite { font-family: 'Special Elite', monospace; }
+.font-blackletter { font-family: 'UnifrakturMaguntia', cursive; }
+.font-delafield { font-family: 'Mrs Saint Delafield', cursive; }
+.font-dancing { font-family: 'Dancing Script', cursive; }
+
+.eyebrow {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--sepia);
 }
 
-.animate-text-shimmer {
-  background-size: 200% auto;
-  animation: text-shimmer 4s ease-in-out infinite;
+/* Antigravity floating glyph animation */
+@keyframes antiGravFloat {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-25px) rotate(3deg); }
+  100% { transform: translateY(15px) rotate(-2deg); }
 }
 
-/* ANIMATION 3: Card 1 Signature Stroke Loop */
-@keyframes signature-draw {
-  0% {
-    stroke-dashoffset: 400;
-  }
-  45% {
-    stroke-dashoffset: 0;
-  }
-  80% {
-    stroke-dashoffset: 0;
-  }
-  100% {
-    stroke-dashoffset: 400;
-  }
+.floating-glyph {
+  position: absolute;
+  font-family: 'Cinzel Decorative', cursive;
+  color: rgba(139,94,52,0.12);
+  user-select: none;
+  pointer-events: none;
+  z-index: 1;
+  animation: antiGravFloat 14s ease-in-out infinite alternate;
 }
 
-.animate-signature-loop {
-  stroke-dasharray: 400;
-  animation: signature-draw 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-/* ANIMATION 3: Card 2 Typing Waveform Bars */
-@keyframes wave-bounce {
-  0%, 100% {
-    transform: scaleY(0.25);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
-
-.wave-bar-1 { animation: wave-bounce 1.1s ease-in-out infinite; }
-.wave-bar-2 { animation: wave-bounce 1.1s ease-in-out 0.15s infinite; }
-.wave-bar-3 { animation: wave-bounce 1.1s ease-in-out 0.3s infinite; }
-.wave-bar-4 { animation: wave-bounce 1.1s ease-in-out 0.45s infinite; }
-.wave-bar-5 { animation: wave-bounce 1.1s ease-in-out 0.6s infinite; }
-.wave-bar-6 { animation: wave-bounce 1.1s ease-in-out 0.2s infinite; }
-.wave-bar-7 { animation: wave-bounce 1.1s ease-in-out 0.35s infinite; }
-
-/* ANIMATION 3: Card 3 Handwriting Scan Line */
-@keyframes scan-sweep {
-  0% {
-    top: 15%;
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    top: 85%;
-    opacity: 0;
-  }
-}
-
-.animate-scan-sweep {
-  animation: scan-sweep 2.4s ease-in-out infinite;
-}
-
-@keyframes corner-pulse {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-}
-
-.animate-corner-pulse {
-  animation: corner-pulse 2s ease-in-out infinite;
-}
-
-/* Smooth Scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Hide scrollbar for category strip */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+/* Custom scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

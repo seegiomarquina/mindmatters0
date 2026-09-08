@@ -1,52 +1,50 @@
 import json
-import sqlite3
-import os
-from datetime import datetime
 from typing import Optional, Dict, Any
+from db.database import SessionLocal, init_db as init_sqlalchemy_db
+from db.models import Report
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'mindmatters.db')
+# Initialize SQLAlchemy database tables
+init_sqlalchemy_db()
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS reports (
-            id TEXT PRIMARY KEY,
-            user_name TEXT,
-            mind_score INTEGER,
-            traits_json TEXT,
-            pdf_path TEXT,
-            created_at TIMESTAMP
-        )
-    """)
-    conn.commit()
-    conn.close()
+    init_sqlalchemy_db()
 
 def save_report(report_id: str, user_name: str, mind_score: int, traits: Dict[str, Any], pdf_path: str):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT OR REPLACE INTO reports (id, user_name, mind_score, traits_json, pdf_path, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (report_id, user_name, mind_score, json.dumps(traits), pdf_path, datetime.utcnow().isoformat()))
-    conn.commit()
-    conn.close()
+    db = SessionLocal()
+    try:
+        report = db.query(Report).filter(Report.id == report_id).first()
+        if not report:
+            report = Report(
+                id=report_id,
+                user_name=user_name,
+                mind_score=mind_score,
+                traits_json=json.dumps(traits),
+                pdf_path=pdf_path,
+                download_url=f"/api/v1/reports/download/{report_id}"
+            )
+            db.add(report)
+        else:
+            report.user_name = user_name
+            report.mind_score = mind_score
+            report.traits_json = json.dumps(traits)
+            report.pdf_path = pdf_path
+        db.commit()
+    finally:
+        db.close()
 
 def get_report(report_id: str) -> Optional[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, user_name, mind_score, traits_json, pdf_path, created_at FROM reports WHERE id = ?", (report_id,))
-    row = cursor.fetchone()
-    conn.close()
-    if not row:
-        return None
-    return {
-        "id": row[0],
-        "user_name": row[1],
-        "mind_score": row[2],
-        "traits": json.loads(row[3]) if row[3] else {},
-        "pdf_path": row[4],
-        "created_at": row[5]
-    }
-
-init_db()
+    db = SessionLocal()
+    try:
+        row = db.query(Report).filter(Report.id == report_id).first()
+        if not row:
+            return None
+        return {
+            "id": row.id,
+            "user_name": row.user_name,
+            "mind_score": row.mind_score,
+            "traits": json.loads(row.traits_json) if row.traits_json else {},
+            "pdf_path": row.pdf_path,
+            "created_at": row.created_at.isoformat() if row.created_at else None
+        }
+    finally:
+        db.close()

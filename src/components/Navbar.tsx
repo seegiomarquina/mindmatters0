@@ -1,5 +1,5 @@
-﻿import React from 'react';
-import { Sparkles, FileText } from 'lucide-react';
+import React from 'react';
+import { Feather, FileText } from 'lucide-react';
 
 interface NavbarProps {
   onOpenSignature: () => void;
@@ -15,77 +15,57 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenReports
 }) => {
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/85 border-b border-slate-800/80 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-18">
-          {/* Logo */}
-          <a href="#home" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 via-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
-              <span className="text-xl">🧠</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-slate-100 via-teal-200 to-cyan-400 bg-clip-text text-transparent">
-                MindMatters AI
-              </span>
-              <span className="text-[10px] text-teal-400/80 font-medium tracking-widest uppercase -mt-1">
-                Biometric Intelligence
-              </span>
-            </div>
-          </a>
+    <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-12 py-4 bg-[#F4ECDD]/90 backdrop-blur-md border-b border-[#1B1B2F]/10 transition-all duration-300">
+      <a href="#" className="flex items-center gap-3 font-cinzel-dec font-bold text-xl sm:text-2xl text-[#1B1B2F] tracking-wide group">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6 text-[#8B5E34] group-hover:rotate-12 transition-transform">
+          <path d="M12 19l7-7 3 3-7 7-3-3z" />
+          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+          <path d="M2 2l7.586 7.586" />
+          <circle cx="11" cy="11" r="2" />
+        </svg>
+        <span>MindMatters</span>
+      </a>
 
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-1 lg:gap-2">
-            <a
-              href="#home"
-              className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-teal-400 hover:bg-slate-900/60 rounded-lg transition-colors"
-            >
-              Home
-            </a>
-            <button
-              onClick={onOpenSignature}
-              className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-teal-400 hover:bg-slate-900/60 rounded-lg transition-colors cursor-pointer"
-            >
-              Sign Analysis
-            </button>
-            <button
-              onClick={onOpenTyping}
-              className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-teal-400 hover:bg-slate-900/60 rounded-lg transition-colors cursor-pointer"
-            >
-              Typing Analysis
-            </button>
-            <button
-              onClick={onOpenHandwriting}
-              className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-teal-400 hover:bg-slate-900/60 rounded-lg transition-colors cursor-pointer"
-            >
-              Handwriting Analysis
-            </button>
-            <button
-              onClick={onOpenReports}
-              className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-teal-400 hover:bg-slate-900/60 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <FileText className="w-3.5 h-3.5 text-cyan-400" />
-              My Reports
-            </button>
-            <a
-              href="#how-it-works"
-              className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-teal-400 hover:bg-slate-900/60 rounded-lg transition-colors"
-            >
-              About
-            </a>
-          </div>
+      <div className="flex items-center gap-6 sm:gap-10">
+        <nav className="hidden md:block">
+          <ul className="flex items-center gap-8 font-cinzel text-xs sm:text-sm font-bold tracking-wider text-[#1B1B2F]">
+            <li>
+              <a href="#styles" className="relative pb-1 hover:text-[#A13D3D] transition-colors after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[1.5px] after:bg-[#A13D3D] hover:after:w-full after:transition-all">
+                Traditions
+              </a>
+            </li>
+            <li>
+              <button onClick={onOpenHandwriting} className="relative pb-1 hover:text-[#A13D3D] transition-colors cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[1.5px] after:bg-[#A13D3D] hover:after:w-full after:transition-all">
+                Handwriting Scan
+              </button>
+            </li>
+            <li>
+              <button onClick={onOpenSignature} className="relative pb-1 hover:text-[#A13D3D] transition-colors cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[1.5px] after:bg-[#A13D3D] hover:after:w-full after:transition-all">
+                Live Ink Pad
+              </button>
+            </li>
+            <li>
+              <button onClick={onOpenTyping} className="relative pb-1 hover:text-[#A13D3D] transition-colors cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[1.5px] after:bg-[#A13D3D] hover:after:w-full after:transition-all">
+                Keystroke Rhythm
+              </button>
+            </li>
+            <li>
+              <button onClick={onOpenReports} className="relative pb-1 hover:text-[#A13D3D] transition-colors flex items-center gap-1.5 cursor-pointer after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[1.5px] after:bg-[#A13D3D] hover:after:w-full after:transition-all">
+                <FileText className="w-3.5 h-3.5 text-[#8B5E34]" />
+                Dossier
+              </button>
+            </li>
+          </ul>
+        </nav>
 
-          {/* CTA Button */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onOpenSignature}
-              className="relative inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-300 hover:from-teal-300 hover:to-cyan-300 shadow-md shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Start Free Analysis</span>
-            </button>
-          </div>
-        </div>
+        <button
+          onClick={onOpenHandwriting}
+          className="bg-[#1B1B2F] text-[#F4ECDD] px-5 py-2.5 rounded-sm font-cinzel text-xs font-bold tracking-widest uppercase border border-[#1B1B2F] hover:bg-transparent hover:text-[#1B1B2F] transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center gap-2"
+        >
+          <Feather className="w-3.5 h-3.5 text-[#C9A24B]" />
+          <span>Analyze Sample</span>
+        </button>
       </div>
-    </nav>
+    </header>
   );
 };

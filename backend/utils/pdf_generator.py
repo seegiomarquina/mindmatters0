@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 import os
 import uuid
+import datetime
 from typing import Dict, Any, Optional
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, Table, TableStyle, HRFlowable
+    SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, Table, TableStyle, HRFlowable, KeepTogether
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 
 from utils.chart_generator import generate_radar_chart, generate_typing_graph, generate_pattern_bar_chart
 
@@ -26,6 +27,7 @@ def generate_pdf_report(
     pdf_filename = f"{report_id}.pdf"
     pdf_path = os.path.join(output_dir, pdf_filename)
 
+    # 0.5 inch margins (36 pt)
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=letter,
@@ -37,51 +39,75 @@ def generate_pdf_report(
 
     styles = getSampleStyleSheet()
     
+    # Precise typographic styles with explicit leading to prevent ANY text collision
     title_style = ParagraphStyle(
-        'DocTitle',
-        parent=styles['Normal'],
+        'MainTitle',
         fontName='Helvetica-Bold',
-        fontSize=24,
-        textColor=colors.HexColor('#0f172a'),
+        fontSize=20,
+        leading=24,
+        textColor=colors.HexColor('#1B1B2F'),
         alignment=TA_CENTER,
-        spaceAfter=4
+        spaceAfter=3
     )
     subtitle_style = ParagraphStyle(
-        'DocSubtitle',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=11,
-        textColor=colors.HexColor('#64748b'),
-        alignment=TA_CENTER,
-        spaceAfter=14
-    )
-    section_heading = ParagraphStyle(
-        'SectionHeading',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=14,
-        textColor=colors.HexColor('#0f766e'),
-        spaceBefore=10,
-        spaceAfter=6
-    )
-    body_style = ParagraphStyle(
-        'BodyTextCustom',
-        parent=styles['Normal'],
+        'SubTitle',
         fontName='Helvetica',
         fontSize=9.5,
-        textColor=colors.HexColor('#334155'),
-        leading=14,
-        spaceAfter=6
+        leading=13,
+        textColor=colors.HexColor('#8B5E34'),
+        alignment=TA_CENTER,
+        spaceAfter=8
+    )
+    section_title = ParagraphStyle(
+        'SecTitle',
+        fontName='Helvetica-Bold',
+        fontSize=11.5,
+        leading=15,
+        textColor=colors.HexColor('#1B1B2F'),
+        spaceBefore=8,
+        spaceAfter=4
+    )
+    body_style = ParagraphStyle(
+        'BodyMain',
+        fontName='Helvetica',
+        fontSize=8.5,
+        leading=12.5,
+        textColor=colors.HexColor('#262640'),
+        alignment=TA_JUSTIFY,
+        spaceAfter=4
+    )
+    meta_label = ParagraphStyle(
+        'MetaLabel',
+        fontName='Helvetica-Bold',
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor('#8B5E34')
+    )
+    meta_val = ParagraphStyle(
+        'MetaVal',
+        fontName='Helvetica',
+        fontSize=8.5,
+        leading=11,
+        textColor=colors.HexColor('#1B1B2F')
+    )
+    rec_bullet = ParagraphStyle(
+        'RecBullet',
+        fontName='Helvetica',
+        fontSize=8,
+        leading=11.5,
+        textColor=colors.HexColor('#262640'),
+        leftIndent=10,
+        spaceAfter=3
     )
 
     story = []
 
-    # Header Banner
+    # 1. Top Header Banner
     story.append(Paragraph("MindMatters AI", title_style))
-    story.append(Paragraph(f"Comprehensive Mental State & Biometric Analysis Dossier - ID: <b>{report_id}</b>", subtitle_style))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#0ea5e9'), spaceAfter=12))
+    story.append(Paragraph(f"Comprehensive Multi-Modal Cognitive &amp; Graphological Dossier &bull; Record ID: <b>{report_id}</b>", subtitle_style))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#C9A24B'), spaceAfter=8, spaceBefore=0))
 
-    # Extract metrics
+    # Extract metrics safely
     sig_traits = signature_data.get('traits', {}) if signature_data else {}
     typ_traits = typing_data or {}
     hw_traits = handwriting_data.get('traits', {}) if handwriting_data else {}
@@ -94,43 +120,71 @@ def generate_pdf_report(
     wpm_val = typ_traits.get('typing_speed_wpm', 45.0)
     avg_dwell_val = typ_traits.get('avg_dwell_time_ms', 78.4)
     avg_flight_val = typ_traits.get('avg_flight_time_ms', 112.3)
-    pattern_val = handwriting_data.get('dominant_pattern', 'structured & methodical') if handwriting_data else 'adaptive cognitive balance'
+    pattern_val = handwriting_data.get('dominant_pattern', 'Fluid & Adaptable') if handwriting_data else 'Equilibrium & Cadence'
 
-    # Score Gauge Box
-    score_color = '#10b981' if mind_score >= 75 else ('#f59e0b' if mind_score >= 50 else '#ef4444')
-    score_status = "Optimal / High Clarity" if mind_score >= 75 else ("Balanced / Moderate Load" if mind_score >= 50 else "High Cognitive Strain")
+    # Score color & status
+    if mind_score >= 75:
+        score_color = '#065F46'
+        score_status = "Optimal / High Executive Equilibrium"
+        status_bg = '#D1FAE5'
+    elif mind_score >= 50:
+        score_color = '#8B5E34'
+        score_status = "Balanced / Moderate Cognitive Load"
+        status_bg = '#FEF3C7'
+    else:
+        score_color = '#A13D3D'
+        score_status = "Elevated Cognitive Strain / Fatigue"
+        status_bg = '#FEE2E2'
 
-    score_data = [
-        [
-            Paragraph(f"<font size=11 color='#64748b'>Subject:</font> <b>{user_name}</b><br/><font size=9 color='#94a3b8'>Assessment Mode: Multi-Biometric Fusion</font>", body_style),
-            Paragraph(f"<font size=28 color='{score_color}'><b>{mind_score}</b></font><font size=14 color='#64748b'>/100</font><br/><font size=9 color='{score_color}'><b>{score_status}</b></font>", ParagraphStyle('Score', alignment=TA_CENTER))
-        ]
+    # 2. Subject Metadata & Score Summary Table
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    col1_content = [
+        Paragraph(f"<b>Subject Name:</b> {user_name}", meta_val),
+        Paragraph(f"<b>Assessment Mode:</b> Multimodal Sensor Fusion (CV + Cadence + Graphology)", meta_val),
+        Paragraph(f"<b>Timestamp:</b> {now_str} &bull; Engine: v2.0 OpenCV BioGraph", meta_val),
+        Paragraph(f"<b>Dominant Morphology:</b> <font color='#8B5E34'><b>{pattern_val}</b></font>", meta_val),
     ]
-    score_table = Table(score_data, colWidths=[340, 200])
-    score_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8fafc')),
-        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#cbd5e1')),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('PADDING', (0, 0), (-1, -1), 8),
-    ]))
-    story.append(score_table)
-    story.append(Spacer(1, 10))
 
-    # Executive Summary Paragraph
+    col2_content = [
+        Paragraph(f"<font size=24 color='{score_color}'><b>{mind_score}</b></font><font size=12 color='#8B5E34'>/100</font>", ParagraphStyle('Sc1', alignment=TA_CENTER, leading=26)),
+        Paragraph(f"<font size=8 color='{score_color}'><b>{score_status}</b></font>", ParagraphStyle('Sc2', alignment=TA_CENTER, leading=10))
+    ]
+
+    meta_table_data = [
+        [col1_content, col2_content]
+    ]
+
+    meta_table = Table(meta_table_data, colWidths=[380, 160])
+    meta_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#F4ECDD')),
+        ('BACKGROUND', (1, 0), (1, 0), colors.HexColor(status_bg)),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#1B1B2F')),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#C9A24B')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(meta_table)
+    story.append(Spacer(1, 6))
+
+    # 3. Clinical & Behavioral Synthesis Paragraph
     summary_text = (
-        f"<b>Clinical & Behavioral Synthesis:</b> Based on multi-modal biometric evaluation, {user_name} exhibits a "
-        f"composite Mind Score of <b>{mind_score}/100</b>, indicating <i>{score_status.lower()}</i>. "
+        f"<b>Clinical &amp; Behavioral Synthesis:</b> Based on multi-modal biometric evaluation, <b>{user_name}</b> exhibits an integrated "
+        f"Mind Score of <b>{mind_score}/100</b> ({score_status.lower()}). "
         f"Signature graphology displays <b>{sig_traits.get('pressure_level', 'medium')}</b> stroke pressure with a "
-        f"<b>{sig_traits.get('slant', 'right')}</b> slant, projecting a confidence index of <b>{confidence_val}%</b>. "
-        f"Keystroke telemetry demonstrates a typing speed of <b>{wpm_val} WPM</b> with an average dwell latency of "
-        f"<b>{avg_dwell_val}ms</b> and a focus rating of <b>{focus_val}%</b>. "
+        f"<b>{sig_traits.get('slant', 'right')}</b> slant vector, projecting a confidence index of <b>{confidence_val}%</b>. "
+        f"Keystroke telemetry demonstrates a typing speed of <b>{wpm_val} WPM</b> with average dwell latency of "
+        f"<b>{avg_dwell_val}ms</b> and focus rating of <b>{focus_val}%</b>. "
         f"Handwriting morphology shows a dominant classification of <b>'{pattern_val}'</b> with "
         f"<b>{formation_val}%</b> formation consistency."
     )
     story.append(Paragraph(summary_text, body_style))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
-    # Generate charts
+    # 4. Generate Visual Metric Charts
     radar_png = generate_radar_chart(
         stress=stress_val,
         focus=focus_val,
@@ -152,18 +206,18 @@ def generate_pdf_report(
     with open(pattern_img_path, 'wb') as f:
         f.write(pattern_png)
 
-    # Charts Layout
+    # Charts Table Layout: Left radar (2.4 in), Right 2 graphs stacked (4.8 in)
     chart_data = [
         [
-            RLImage(radar_img_path, width=2.6*inch, height=2.6*inch),
+            RLImage(radar_img_path, width=2.4*inch, height=2.4*inch),
             [
-                RLImage(typing_img_path, width=4.5*inch, height=1.3*inch),
+                RLImage(typing_img_path, width=4.8*inch, height=1.15*inch),
                 Spacer(1, 4),
-                RLImage(pattern_img_path, width=4.5*inch, height=1.2*inch)
+                RLImage(pattern_img_path, width=4.8*inch, height=1.15*inch)
             ]
         ]
     ]
-    chart_table = Table(chart_data, colWidths=[2.7*inch, 4.6*inch])
+    chart_table = Table(chart_data, colWidths=[2.5*inch, 5.0*inch])
     chart_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -173,23 +227,24 @@ def generate_pdf_report(
         ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
     ]))
     story.append(chart_table)
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 4))
 
-    # Recommendations
-    story.append(Paragraph("Tailored Cognitive & Wellness Recommendations", section_heading))
+    # 5. Tailored Cognitive & Wellness Recommendations
+    story.append(Paragraph("Tailored Cognitive &amp; Behavioral Recommendations", section_title))
     
-    rec_1 = "- <b>Pacing & Micro-Breaks:</b> Maintain your rhythm during deep typing intervals by taking 60-second eye-relaxation breaks every 25 minutes."
-    rec_2 = "- <b>Motor Precision:</b> Your signature and handwriting consistency indicates high attentiveness. Retain fluid pen pressure for balanced cognitive stamina."
-    rec_3 = "- <b>Stress Modulation:</b> Incorporate 4-7-8 breathing cycles prior to intensive typing sessions to reduce flight time variance."
+    rec_1 = "&bull; <b>Pacing &amp; Micro-Breaks:</b> Maintain your rhythm during deep typing intervals by taking 60-second eye-relaxation breaks every 25 minutes."
+    rec_2 = "&bull; <b>Motor Precision:</b> Your signature and handwriting consistency indicates high attentiveness. Retain fluid pen pressure for balanced cognitive stamina."
+    rec_3 = "&bull; <b>Stress Modulation:</b> Incorporate 4-7-8 breathing cycles prior to intensive typing sessions to reduce flight time variance."
     
-    story.append(Paragraph(rec_1, body_style))
-    story.append(Paragraph(rec_2, body_style))
-    story.append(Paragraph(rec_3, body_style))
+    story.append(Paragraph(rec_1, rec_bullet))
+    story.append(Paragraph(rec_2, rec_bullet))
+    story.append(Paragraph(rec_3, rec_bullet))
     story.append(Spacer(1, 6))
 
-    # Footer note
-    footer_text = "<font size=8 color='#94a3b8'>MindMatters AI - Science-Backed Multi-Modal Behavioral Analysis - Academic & Research Prototype - All biometric metrics are strictly confidential.</font>"
-    story.append(Paragraph(footer_text, ParagraphStyle('FooterStyle', alignment=TA_CENTER)))
+    # 6. Confidentiality Footer
+    footer_text = "<font size=7.5 color='#8B5E34'>MindMatters AI &bull; Science-Backed Multi-Modal Behavioral Analysis &bull; Academic &amp; Research Prototype &bull; Confidential Dossier</font>"
+    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#C9A24B'), spaceAfter=4, spaceBefore=2))
+    story.append(Paragraph(footer_text, ParagraphStyle('FooterStyle', alignment=TA_CENTER, leading=9)))
 
     doc.build(story)
 

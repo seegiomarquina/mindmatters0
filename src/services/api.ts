@@ -1,4 +1,4 @@
-﻿import {
+import {
   SignatureAnalysisResponse,
   TypingAnalysisResponse,
   HandwritingAnalysisResponse,
@@ -8,17 +8,27 @@
 
 const API_BASE = '';
 
-export async function checkBackendHealth(): Promise<{ status: string }> {
-  const res = await fetch(`${API_BASE}/health`);
-  if (!res.ok) throw new Error('Backend health check failed');
+/**
+ * Health check endpoint verifying backend connectivity and DB state.
+ */
+export async function checkBackendHealth(): Promise<{ status: string; version?: string; engine?: string; database?: string }> {
+  const res = await fetch(`${API_BASE}/api/v1/health`);
+  if (!res.ok) {
+    const fallback = await fetch(`${API_BASE}/health`);
+    if (!fallback.ok) throw new Error('Backend health check failed');
+    return fallback.json();
+  }
   return res.json();
 }
 
+/**
+ * Sends a real signature image file to the computer vision analysis engine.
+ */
 export async function analyzeSignatureApi(fileOrBlob: Blob): Promise<SignatureAnalysisResponse> {
   const formData = new FormData();
   formData.append('file', fileOrBlob, 'signature.png');
 
-  const res = await fetch(`${API_BASE}/analyze/signature`, {
+  const res = await fetch(`${API_BASE}/api/v1/signature/analyze`, {
     method: 'POST',
     body: formData,
   });
@@ -31,8 +41,11 @@ export async function analyzeSignatureApi(fileOrBlob: Blob): Promise<SignatureAn
   return res.json();
 }
 
+/**
+ * Sends keystroke dynamics telemetry to the behavioral timing analysis engine.
+ */
 export async function analyzeTypingApi(keystrokes: KeystrokeItem[]): Promise<TypingAnalysisResponse> {
-  const res = await fetch(`${API_BASE}/analyze/typing`, {
+  const res = await fetch(`${API_BASE}/api/v1/typing/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ keystrokes }),
@@ -46,11 +59,14 @@ export async function analyzeTypingApi(keystrokes: KeystrokeItem[]): Promise<Typ
   return res.json();
 }
 
+/**
+ * Sends a real handwritten document scan or photo to the OpenCV feature extraction engine.
+ */
 export async function analyzeHandwritingApi(fileOrBlob: Blob): Promise<HandwritingAnalysisResponse> {
   const formData = new FormData();
   formData.append('file', fileOrBlob, 'handwriting.png');
 
-  const res = await fetch(`${API_BASE}/analyze/handwriting`, {
+  const res = await fetch(`${API_BASE}/api/v1/handwriting/analyze`, {
     method: 'POST',
     body: formData,
   });
@@ -63,13 +79,16 @@ export async function analyzeHandwritingApi(fileOrBlob: Blob): Promise<Handwriti
   return res.json();
 }
 
+/**
+ * Compiles multimodal behavioral inputs into a structured Mind Score and PDF dossier.
+ */
 export async function generateReportApi(payload: {
   user_name: string;
   signature_result?: SignatureAnalysisResponse | null;
   typing_result?: TypingAnalysisResponse | null;
   handwriting_result?: HandwritingAnalysisResponse | null;
 }): Promise<ReportGenerateResponse> {
-  const res = await fetch(`${API_BASE}/report/generate`, {
+  const res = await fetch(`${API_BASE}/api/v1/reports/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -83,6 +102,38 @@ export async function generateReportApi(payload: {
   return res.json();
 }
 
+/**
+ * Returns the download endpoint URL for a compiled PDF report dossier.
+ */
 export function getReportDownloadUrl(reportId: string): string {
-  return `${API_BASE}/report/download/${reportId}`;
+  return `${API_BASE}/api/v1/reports/download/${reportId}`;
+}
+
+/**
+ * Retrieves historical analysis records.
+ */
+export async function getAnalysesHistoryApi(page = 1, pageSize = 20): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/v1/analyses?page=${page}&page_size=${pageSize}`);
+  if (!res.ok) throw new Error('Failed to fetch analyses history');
+  return res.json();
+}
+
+/**
+ * Retrieves detailed analysis record with 10+ measurable biometric features.
+ */
+export async function getAnalysisDetailApi(analysisId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/v1/analyses/${analysisId}`);
+  if (!res.ok) throw new Error('Failed to fetch analysis detail');
+  return res.json();
+}
+
+/**
+ * Deletes an analysis record and associated sample files.
+ */
+export async function deleteAnalysisApi(analysisId: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/api/v1/analyses/${analysisId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete analysis');
+  return res.json();
 }

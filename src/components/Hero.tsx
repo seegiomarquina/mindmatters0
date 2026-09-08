@@ -1,107 +1,172 @@
-﻿import React, { useState } from 'react';
-import { Search, Sparkles, ShieldCheck, Cpu, Zap, ArrowRight } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Upload, Feather, Keyboard, Sparkles, ArrowRight } from 'lucide-react';
 
 interface HeroProps {
-  onAnalyzeChoice: (mode: 'signature' | 'typing' | 'handwriting') => void;
+  onAnalyzeChoice: (mode: 'signature' | 'typing' | 'handwriting', file?: File) => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({ onAnalyzeChoice }) => {
-  const [selectedMode, setSelectedMode] = useState<'signature' | 'typing' | 'handwriting'>('signature');
-  const [queryText, setQueryText] = useState('');
+  const [activeTab, setActiveTab] = useState<'handwriting' | 'signature' | 'typing'>('handwriting');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleAnalyzeClick = () => {
-    onAnalyzeChoice(selectedMode);
+  const handleTabClick = (mode: 'handwriting' | 'signature' | 'typing') => {
+    setActiveTab(mode);
+  };
+
+  const handleBarClick = () => {
+    if (activeTab === 'handwriting') {
+      fileInputRef.current?.click();
+    } else {
+      onAnalyzeChoice(activeTab);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      onAnalyzeChoice('handwriting', file);
+    }
   };
 
   return (
-    <section id="home" className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden">
-      {/* Ambient background glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-teal-500/15 via-cyan-500/10 to-indigo-600/15 blur-[120px] pointer-events-none -z-10 rounded-full" />
-      <div className="absolute top-10 right-10 w-72 h-72 bg-purple-500/10 blur-[100px] pointer-events-none -z-10 rounded-full" />
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        
-        {/* Animated Stagger 1: Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-teal-500/30 text-teal-300 text-xs font-medium mb-6 shadow-inner backdrop-blur-md animate-fade-in-up [animation-delay:0ms]">
-          <span className="flex h-2 w-2 rounded-full bg-teal-400 animate-ping" />
-          <span>Next-Gen Multi-Biometric Cognitive Profiler</span>
-        </div>
-
-        {/* Animated Stagger 2: Headline with Gradient Shimmer on 'Really Saying' */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-100 leading-[1.12] mb-6 animate-fade-in-up [animation-delay:100ms]">
-          Discover What Your Mind Is{' '}
-          <span className="bg-gradient-to-r from-teal-300 via-cyan-400 to-indigo-400 bg-clip-text text-transparent animate-text-shimmer">
-            Really Saying
-          </span>
-        </h1>
-
-        {/* Animated Stagger 3: Sub-headline */}
-        <p className="max-w-3xl mx-auto text-base sm:text-lg md:text-xl text-slate-300/90 font-normal leading-relaxed mb-10 animate-fade-in-up [animation-delay:200ms]">
-          One platform. Three ways to analyze your mental state — through your <span className="text-teal-300 font-medium">handwriting</span>, your <span className="text-cyan-300 font-medium">typing</span>, and your <span className="text-indigo-300 font-medium">signature</span>. Get a single, science-backed report in minutes.
-        </p>
-
-        {/* Animated Stagger 4: Search-Bar Style Component */}
-        <div className="max-w-2xl mx-auto mb-10 animate-fade-in-up [animation-delay:300ms]">
-          <div className="relative flex flex-col sm:flex-row items-center gap-2 p-2 rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-2xl shadow-teal-950/40 backdrop-blur-xl">
-            <div className="flex items-center flex-1 w-full pl-3 pr-2 py-1.5">
-              <Search className="w-5 h-5 text-slate-400 mr-2.5 shrink-0" />
-              <input
-                type="text"
-                value={queryText}
-                onChange={(e) => setQueryText(e.target.value)}
-                placeholder="What do you want to analyze today?"
-                className="w-full bg-transparent text-sm sm:text-base text-slate-100 placeholder:text-slate-400 focus:outline-none"
-              />
-            </div>
-
-            {/* Dropdown mode selector */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <select
-                value={selectedMode}
-                onChange={(e) => setSelectedMode(e.target.value as any)}
-                className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs sm:text-sm font-medium text-slate-200 focus:outline-none focus:border-teal-500 cursor-pointer"
-              >
-                <option value="signature">Sign Analysis</option>
-                <option value="typing">Typing Analysis</option>
-                <option value="handwriting">Handwriting Analysis</option>
-              </select>
-
-              {/* Analyze Now Button */}
-              <button
-                onClick={handleAnalyzeClick}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-300 hover:to-cyan-300 shadow-lg shadow-teal-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>Analyze Now</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Animated Stagger 5: Trust Strip */}
-        <div className="inline-flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-slate-400 animate-fade-in-up [animation-delay:400ms]">
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <Cpu className="w-4 h-4 text-teal-400" />
-            <span>Trusted analysis engine</span>
-          </div>
-          <span className="hidden sm:inline text-slate-600">·</span>
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <Zap className="w-4 h-4 text-cyan-400" />
-            <span>3 input modes</span>
-          </div>
-          <span className="hidden sm:inline text-slate-600">·</span>
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
-            <span>Instant AI-generated report</span>
-          </div>
-          <span className="hidden sm:inline text-slate-600">·</span>
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>100% private & on-device friendly</span>
-          </div>
-        </div>
-
+    <section className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-6 sm:px-12 pt-36 pb-20 overflow-hidden bg-radial from-[#C9A24B]/10 via-transparent to-transparent">
+      {/* Floating Antigravity Glyphs */}
+      <div
+        className="floating-glyph antigravity"
+        data-depth="0.04"
+        style={{ top: '20%', left: '8%', fontSize: '4.5rem' }}
+      >
+        ॐ
       </div>
+      <div
+        className="floating-glyph antigravity font-delafield"
+        data-depth="-0.03"
+        style={{ bottom: '18%', right: '9%', fontSize: '5.5rem', opacity: 0.18 }}
+      >
+        Yours truly
+      </div>
+      <div
+        className="floating-glyph antigravity font-cinzel-dec"
+        data-depth="0.05"
+        style={{ top: '30%', right: '14%', fontSize: '3rem', opacity: 0.12 }}
+      >
+        Ψ
+      </div>
+
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
+      {/* Eyebrow */}
+      <span className="eyebrow antigravity mb-4" data-depth="0.015">
+        Graphology &amp; Keystroke Dynamics
+      </span>
+
+      {/* Hero Headline */}
+      <div className="relative inline-block max-w-4xl antigravity mb-4" data-depth="0.035">
+        <h1 className="font-cinzel-dec font-black text-4xl sm:text-6xl lg:text-7xl tracking-wide uppercase text-[#1B1B2F] drop-shadow-sm leading-[1.12]">
+          Every Stroke Tells A Story
+        </h1>
+      </div>
+
+      {/* Hero Subtitle */}
+      <h2 className="font-cormorant italic font-medium text-lg sm:text-2xl text-[#3B4B6B] max-w-2xl mx-auto mb-6 leading-relaxed antigravity" data-depth="0.02">
+        Upload a sample and MindMatters reads the pressure, slant, and rhythm behind your handwriting — the parts you never meant to say out loud.
+      </h2>
+
+      {/* Gold Flourish Ornament */}
+      <svg
+        className="flourish antigravity mb-7"
+        data-depth="0.025"
+        width="160"
+        height="24"
+        viewBox="0 0 160 24"
+        fill="none"
+      >
+        <path
+          d="M2 12c20-14 28 14 48 0s28-14 48 0 28 14 48 0"
+          stroke="#C9A24B"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+
+      {/* Interactive Mode Tabs */}
+      <div className="tab-group antigravity inline-flex gap-1.5 bg-[#1B1B2F]/[0.07] p-1.5 rounded-sm mb-6 z-10" data-depth="0.02">
+        <button
+          onClick={() => handleTabClick('handwriting')}
+          className={`tab-btn px-5 py-2.5 text-xs sm:text-sm font-cinzel font-bold tracking-wider rounded-sm transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === 'handwriting'
+              ? 'bg-[#1B1B2F] text-[#F4ECDD] shadow-md shadow-[#1B1B2F]/20'
+              : 'text-[#1B1B2F] hover:bg-[#1B1B2F]/10'
+          }`}
+        >
+          <Upload className="w-4 h-4 text-[#C9A24B]" />
+          <span>Upload File</span>
+        </button>
+
+        <button
+          onClick={() => handleTabClick('signature')}
+          className={`tab-btn px-5 py-2.5 text-xs sm:text-sm font-cinzel font-bold tracking-wider rounded-sm transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === 'signature'
+              ? 'bg-[#1B1B2F] text-[#F4ECDD] shadow-md shadow-[#1B1B2F]/20'
+              : 'text-[#1B1B2F] hover:bg-[#1B1B2F]/10'
+          }`}
+        >
+          <Feather className="w-4 h-4 text-[#C9A24B]" />
+          <span>Live Ink Pad</span>
+        </button>
+
+        <button
+          onClick={() => handleTabClick('typing')}
+          className={`tab-btn px-5 py-2.5 text-xs sm:text-sm font-cinzel font-bold tracking-wider rounded-sm transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === 'typing'
+              ? 'bg-[#1B1B2F] text-[#F4ECDD] shadow-md shadow-[#1B1B2F]/20'
+              : 'text-[#1B1B2F] hover:bg-[#1B1B2F]/10'
+          }`}
+        >
+          <Keyboard className="w-4 h-4 text-[#C9A24B]" />
+          <span>Keystroke Test</span>
+        </button>
+      </div>
+
+      {/* Interactive Upload Input Bar */}
+      <div
+        onClick={handleBarClick}
+        className="upload-bar antigravity flex items-center bg-[#F4ECDD] border-2 border-[#1B1B2F] rounded-sm p-2 pl-6 max-w-xl w-full shadow-2xl shadow-[#1B1B2F]/15 z-10 cursor-pointer hover:border-[#8B5E34] hover:shadow-2xl transition-all"
+        data-depth="0.045"
+        id="upload"
+      >
+        <span className="flex-1 text-left font-lora text-sm sm:text-base text-[#1B1B2F] select-none italic text-[#5B5B70]">
+          {activeTab === 'handwriting'
+            ? 'Drop a photo of your handwriting, or click to browse…'
+            : activeTab === 'signature'
+            ? 'Click to open the live signature & inking pad…'
+            : 'Click to start real-time typing dynamics calibration…'}
+        </span>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleBarClick();
+          }}
+          className="upload-btn bg-[#A13D3D] text-[#F4ECDD] border-none px-6 py-3 rounded-sm font-cinzel text-xs font-bold tracking-widest uppercase hover:bg-[#832F2F] hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+        >
+          <span>{activeTab === 'handwriting' ? 'Analyze File' : activeTab === 'signature' ? 'Sign Now' : 'Type Now'}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Hint */}
+      <span className="hero-hint antigravity mt-4 text-xs text-[#6B6B80] font-lora italic tracking-wide z-10" data-depth="0.02">
+        JPG, PNG, live ink or keystroke stream · evaluated against 50,000+ benchmark profiles
+      </span>
     </section>
   );
 };

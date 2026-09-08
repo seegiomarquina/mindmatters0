@@ -1,5 +1,5 @@
-﻿import React, { useState } from 'react';
-import { X, Upload, Check, Loader2, AlertCircle, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Upload, Check, Loader2, AlertCircle, Camera, Sparkles } from 'lucide-react';
 import { analyzeHandwritingApi } from '../services/api';
 import { HandwritingAnalysisResponse } from '../types';
 
@@ -7,17 +7,29 @@ interface HandwritingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAnalysisComplete: (result: HandwritingAnalysisResponse) => void;
+  initialFile?: File | null;
 }
 
 export const HandwritingModal: React.FC<HandwritingModalProps> = ({
   isOpen,
   onClose,
-  onAnalysisComplete
+  onAnalysisComplete,
+  initialFile
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialFile) {
+        setSelectedFile(initialFile);
+        setPreviewUrl(URL.createObjectURL(initialFile));
+      }
+      setErrorMessage(null);
+    }
+  }, [isOpen, initialFile]);
 
   if (!isOpen) return null;
 
@@ -51,31 +63,32 @@ export const HandwritingModal: React.FC<HandwritingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl shadow-purple-950/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1B1B2F]/70 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-xl rounded-sm bg-[#F4ECDD] border-2 border-[#1B1B2F] p-6 sm:p-8 shadow-2xl shadow-[#1B1B2F]/40">
         
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-[#1B1B2F]/15">
+          <div className="flex items-center gap-3">
             <span className="text-2xl">📝</span>
             <div>
-              <h3 className="text-lg font-bold text-slate-100">
-                Handwriting Image Analysis
+              <h3 className="font-cinzel font-bold text-lg text-[#1B1B2F]">
+                Handwriting Morphology Scan
               </h3>
-              <p className="text-xs text-slate-400">
-                Upload a photo/scan of regular handwritten notes (not a signature)
+              <p className="text-xs text-[#5B5B70] font-lora italic">
+                Upload a document scan or note page for OpenCV biometric extraction
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-sm text-[#1B1B2F]/60 hover:text-[#1B1B2F] hover:bg-[#1B1B2F]/5 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMessage && (
-          <div className="mt-4 p-3 rounded-xl bg-rose-950/50 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
+          <div className="mt-4 p-3 rounded-sm bg-[#A13D3D]/10 border border-[#A13D3D]/30 text-[#A13D3D] text-xs flex items-center gap-2 font-lora">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>
@@ -83,15 +96,15 @@ export const HandwritingModal: React.FC<HandwritingModalProps> = ({
 
         <div className="my-6">
           {previewUrl ? (
-            <div className="relative rounded-2xl overflow-hidden border border-purple-500/40 bg-slate-950 h-56 flex items-center justify-center group">
+            <div className="relative rounded-sm overflow-hidden border-2 border-[#C9A24B] bg-[#E8DFC9] h-60 flex items-center justify-center group shadow-inner">
               <img
                 src={previewUrl}
                 alt="Handwriting preview"
                 className="max-h-full object-contain"
               />
-              <label className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 cursor-pointer transition-opacity text-xs font-semibold text-purple-300">
-                <Upload className="w-4 h-4" />
-                <span>Replace Image</span>
+              <label className="absolute inset-0 bg-[#1B1B2F]/75 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 cursor-pointer transition-opacity text-xs font-cinzel font-bold text-[#F4ECDD]">
+                <Upload className="w-4 h-4 text-[#C9A24B]" />
+                <span>Replace Sample</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -101,16 +114,16 @@ export const HandwritingModal: React.FC<HandwritingModalProps> = ({
               </label>
             </div>
           ) : (
-            <label className="border-2 border-dashed border-slate-700 hover:border-purple-500/60 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 bg-slate-950/50 hover:bg-slate-950/80 cursor-pointer transition-all">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <label className="border-2 border-dashed border-[#8B5E34]/40 hover:border-[#8B5E34] rounded-sm p-8 flex flex-col items-center justify-center gap-3 bg-[#E8DFC9]/40 hover:bg-[#E8DFC9]/70 cursor-pointer transition-all">
+              <div className="w-12 h-12 rounded-sm bg-[#8B5E34]/10 border border-[#8B5E34]/20 flex items-center justify-center text-[#8B5E34]">
                 <Camera className="w-6 h-6" />
               </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-slate-200">
+              <div className="text-center font-lora">
+                <p className="text-sm font-semibold text-[#1B1B2F]">
                   Click to snap photo or upload image
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Supports JPG, PNG document scans or notebook photos
+                <p className="text-xs text-[#6B6B80] mt-1 italic">
+                  Supports JPG, PNG document scans or handwritten diary pages
                 </p>
               </div>
               <input
@@ -123,31 +136,37 @@ export const HandwritingModal: React.FC<HandwritingModalProps> = ({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
+        <div className="flex items-center justify-between pt-2">
+          <span className="text-[11px] text-[#6B6B80] font-lora italic">
+            * Measurable features separated from clinical interpretations
+          </span>
 
-          <button
-            onClick={handleAnalyze}
-            disabled={isLoading || !selectedFile}
-            className="px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-purple-400 to-indigo-400 hover:from-purple-300 hover:to-indigo-300 shadow-md shadow-purple-500/25 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                <span>Segmenting Page...</span>
-              </>
-            ) : (
-              <>
-                <Check className="w-4 h-4 text-slate-950" />
-                <span>Scan Handwriting</span>
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-sm text-xs font-cinzel font-bold text-[#1B1B2F]/70 hover:text-[#1B1B2F] transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleAnalyze}
+              disabled={isLoading || !selectedFile}
+              className="px-5 py-2.5 rounded-sm font-cinzel text-xs font-bold tracking-wider text-[#F4ECDD] bg-[#A13D3D] hover:bg-[#832F2F] shadow-md shadow-[#A13D3D]/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-[#F4ECDD]" />
+                  <span>Extracting 10+ Features...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-[#C9A24B]" />
+                  <span>Process Handwriting</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
       </div>

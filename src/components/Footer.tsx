@@ -1,37 +1,34 @@
-﻿import React from 'react';
-import { Github } from 'lucide-react';
+import React from 'react';
+import { Github, Feather } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-slate-950 border-t border-slate-900 py-12 text-slate-400">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl">🧠</span>
-          <span className="font-bold text-lg text-slate-100">
-            MindMatters AI
+    <footer className="bg-[#E8DFC9] border-t border-[#1B1B2F]/15 py-16 text-[#5B5B70] font-lora">
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 flex flex-col items-center text-center">
+        <div className="flex items-center gap-3 mb-3">
+          <Feather className="w-6 h-6 text-[#8B5E34]" />
+          <span className="font-cinzel-dec font-bold text-2xl text-[#1B1B2F] tracking-wide">
+            MindMatters
           </span>
         </div>
         
-        <p className="text-sm text-slate-400 max-w-md mb-6">
-          MindMatters AI — Decoding minds, one pattern at a time.
+        <p className="text-sm text-[#5B5B70] max-w-md mb-8 italic">
+          Decoding behavioral kinetics &amp; graphological morphology — one stroke at a time.
         </p>
 
-        <div className="flex flex-wrap justify-center gap-6 text-sm font-medium text-slate-300 mb-8">
-          <a href="#home" className="hover:text-teal-400 transition-colors">About</a>
-          <a href="#how-it-works" className="hover:text-teal-400 transition-colors">How it Works</a>
-          <a href="#report-section" className="hover:text-teal-400 transition-colors">Privacy</a>
-          <a href="#core-services" className="hover:text-teal-400 transition-colors">Contact</a>
-          <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-teal-400 transition-colors flex items-center gap-1">
-            <Github className="w-4 h-4" />
-            <span>GitHub</span>
-          </a>
+        <div className="flex flex-wrap justify-center gap-8 text-xs font-cinzel font-bold text-[#1B1B2F] mb-8 uppercase tracking-widest">
+          <a href="#" className="hover:text-[#A13D3D] transition-colors">Home</a>
+          <a href="#styles" className="hover:text-[#A13D3D] transition-colors">Traditions</a>
+          <a href="#core-services" className="hover:text-[#A13D3D] transition-colors">Engines</a>
+          <a href="#how-it-works" className="hover:text-[#A13D3D] transition-colors">Methodology</a>
+          <a href="#report-section" className="hover:text-[#A13D3D] transition-colors">Dossier</a>
         </div>
 
-        <div className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-800/80 text-xs text-slate-400">
-          Final Year Data Science Project — for academic/research purposes
+        <div className="px-5 py-2.5 rounded-sm bg-[#F4ECDD] border border-[#1B1B2F]/15 text-xs text-[#8B5E34] font-cinzel font-semibold shadow-inner">
+          Computer-Vision &amp; Multi-Biometric Cognitive Engine · Real Science &amp; Research Platform
         </div>
 
-        <p className="text-[11px] text-slate-600 mt-6">
+        <p className="text-xs text-[#7A7A8F] mt-8">
           © {new Date().getFullYear()} MindMatters AI. Built with precision and care.
         </p>
       </div>
