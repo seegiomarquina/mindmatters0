@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import uuid
+import html
 import datetime
 from typing import Dict, Any, Optional
 from reportlab.lib.pagesizes import letter
@@ -102,9 +103,13 @@ def generate_pdf_report(
 
     story = []
 
+    # Sanitize user inputs against XML/HTML injection in ReportLab Paragraphs
+    safe_user_name = html.escape(str(user_name or "Anonymous"))
+    safe_report_id = html.escape(str(report_id))
+
     # 1. Top Header Banner
     story.append(Paragraph("MindMatters AI", title_style))
-    story.append(Paragraph(f"Comprehensive Multi-Modal Cognitive &amp; Graphological Dossier &bull; Record ID: <b>{report_id}</b>", subtitle_style))
+    story.append(Paragraph(f"Multimodal Cognitive &amp; Graphological Dossier &bull; Record ID: <b>{safe_report_id}</b>", subtitle_style))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#C9A24B'), spaceAfter=8, spaceBefore=0))
 
     # Extract metrics safely
@@ -120,7 +125,8 @@ def generate_pdf_report(
     wpm_val = typ_traits.get('typing_speed_wpm', 45.0)
     avg_dwell_val = typ_traits.get('avg_dwell_time_ms', 78.4)
     avg_flight_val = typ_traits.get('avg_flight_time_ms', 112.3)
-    pattern_val = handwriting_data.get('dominant_pattern', 'Fluid & Adaptable') if handwriting_data else 'Equilibrium & Cadence'
+    raw_pattern = handwriting_data.get('dominant_pattern', 'Fluid & Adaptable') if handwriting_data else 'Equilibrium & Cadence'
+    safe_pattern = html.escape(str(raw_pattern))
 
     # Score color & status
     if mind_score >= 75:
@@ -136,19 +142,21 @@ def generate_pdf_report(
         score_status = "Elevated Cognitive Strain / Fatigue"
         status_bg = '#FEE2E2'
 
+    safe_score_status = html.escape(score_status)
+
     # 2. Subject Metadata & Score Summary Table
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     
     col1_content = [
-        Paragraph(f"<b>Subject Name:</b> {user_name}", meta_val),
+        Paragraph(f"<b>Subject Name:</b> {safe_user_name}", meta_val),
         Paragraph(f"<b>Assessment Mode:</b> Multimodal Sensor Fusion (CV + Cadence + Graphology)", meta_val),
-        Paragraph(f"<b>Timestamp:</b> {now_str} &bull; Engine: v2.0 OpenCV BioGraph", meta_val),
-        Paragraph(f"<b>Dominant Morphology:</b> <font color='#8B5E34'><b>{pattern_val}</b></font>", meta_val),
+        Paragraph(f"<b>Timestamp:</b> {now_str} &bull; Engine: v2.1 Academic Research Edition", meta_val),
+        Paragraph(f"<b>Dominant Morphology:</b> <font color='#8B5E34'><b>{safe_pattern}</b></font>", meta_val),
     ]
 
     col2_content = [
         Paragraph(f"<font size=24 color='{score_color}'><b>{mind_score}</b></font><font size=12 color='#8B5E34'>/100</font>", ParagraphStyle('Sc1', alignment=TA_CENTER, leading=26)),
-        Paragraph(f"<font size=8 color='{score_color}'><b>{score_status}</b></font>", ParagraphStyle('Sc2', alignment=TA_CENTER, leading=10))
+        Paragraph(f"<font size=8 color='{score_color}'><b>{safe_score_status}</b></font>", ParagraphStyle('Sc2', alignment=TA_CENTER, leading=10))
     ]
 
     meta_table_data = [
@@ -170,15 +178,17 @@ def generate_pdf_report(
     story.append(meta_table)
     story.append(Spacer(1, 6))
 
-    # 3. Clinical & Behavioral Synthesis Paragraph
+    # 3. Experimental Grapho-Kinetic Analysis Synthesis Paragraph
+    safe_pressure = html.escape(str(sig_traits.get('pressure_level', 'medium')))
+    safe_slant = html.escape(str(sig_traits.get('slant', 'right')))
     summary_text = (
-        f"<b>Clinical &amp; Behavioral Synthesis:</b> Based on multi-modal biometric evaluation, <b>{user_name}</b> exhibits an integrated "
-        f"Mind Score of <b>{mind_score}/100</b> ({score_status.lower()}). "
-        f"Signature graphology displays <b>{sig_traits.get('pressure_level', 'medium')}</b> stroke pressure with a "
-        f"<b>{sig_traits.get('slant', 'right')}</b> slant vector, projecting a confidence index of <b>{confidence_val}%</b>. "
+        f"<b>Experimental Grapho-Kinetic Analysis (Academic Research Prototype):</b> Based on multi-modal biometric evaluation, <b>{safe_user_name}</b> exhibits an integrated "
+        f"Mind Score of <b>{mind_score}/100</b> ({safe_score_status.lower()}). "
+        f"Signature analysis displays <b>{safe_pressure}</b> optical stroke-thickness proxy with a "
+        f"<b>{safe_slant}</b> slant vector, projecting an estimated motor fluidity index of <b>{confidence_val}%</b>. "
         f"Keystroke telemetry demonstrates a typing speed of <b>{wpm_val} WPM</b> with average dwell latency of "
         f"<b>{avg_dwell_val}ms</b> and focus rating of <b>{focus_val}%</b>. "
-        f"Handwriting morphology shows a dominant classification of <b>'{pattern_val}'</b> with "
+        f"Handwriting morphology shows a dominant classification of <b>'{safe_pattern}'</b> with "
         f"<b>{formation_val}%</b> formation consistency."
     )
     story.append(Paragraph(summary_text, body_style))
@@ -233,16 +243,16 @@ def generate_pdf_report(
     story.append(Paragraph("Tailored Cognitive &amp; Behavioral Recommendations", section_title))
     
     rec_1 = "&bull; <b>Pacing &amp; Micro-Breaks:</b> Maintain your rhythm during deep typing intervals by taking 60-second eye-relaxation breaks every 25 minutes."
-    rec_2 = "&bull; <b>Motor Precision:</b> Your signature and handwriting consistency indicates high attentiveness. Retain fluid pen pressure for balanced cognitive stamina."
-    rec_3 = "&bull; <b>Stress Modulation:</b> Incorporate 4-7-8 breathing cycles prior to intensive typing sessions to reduce flight time variance."
+    rec_2 = "&bull; <b>Motor Precision:</b> Your signature and handwriting consistency indicates high attentiveness. Retain fluid stroke control for balanced motor stamina."
+    rec_3 = "&bull; <b>Cadence Modulation:</b> Incorporate 4-7-8 breathing cycles prior to intensive typing sessions to reduce flight time variance."
     
     story.append(Paragraph(rec_1, rec_bullet))
     story.append(Paragraph(rec_2, rec_bullet))
     story.append(Paragraph(rec_3, rec_bullet))
     story.append(Spacer(1, 6))
 
-    # 6. Confidentiality Footer
-    footer_text = "<font size=7.5 color='#8B5E34'>MindMatters AI &bull; Science-Backed Multi-Modal Behavioral Analysis &bull; Academic &amp; Research Prototype &bull; Confidential Dossier</font>"
+    # 6. Academic Research & Confidentiality Footer
+    footer_text = "<font size=7 color='#8B5E34'>MindMatters AI &bull; Academic Research Prototype &bull; For Educational &amp; Research Evaluation Only &bull; Not a Clinical/Medical Diagnostic Instrument &bull; Confidential</font>"
     story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#C9A24B'), spaceAfter=4, spaceBefore=2))
     story.append(Paragraph(footer_text, ParagraphStyle('FooterStyle', alignment=TA_CENTER, leading=9)))
 

@@ -19,6 +19,10 @@ class ReportGenerateResponse(BaseModel):
     dominant_archetype: Optional[str] = None
     executive_summary: Optional[str] = None
     download_url: str
+    status: Optional[str] = "complete"
+    formula_version: Optional[str] = "2.1.0-strict"
+    modalities_analyzed: Optional[list] = None
+    uncalibrated_modalities: Optional[list] = None
 
 class ReportDetailResponse(BaseModel):
     id: str

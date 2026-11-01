@@ -10,6 +10,20 @@ from services.image_processor import preprocess_handwriting_pipeline
 from db.models import Sample, Analysis, ExtractedFeatures
 
 class SignatureAnalyzer:
+    """
+    Signature Geometry & Biometric Stroke Engine.
+    
+    Extracts geometric, directional, and stroke-width features from signature scans:
+    - Optical Stroke Width & Variance: Euclidean distance transform L2 metric on binarized strokes
+    - Directional Slant: Ellipse orientation via second-order central moments
+    - Baseline Jitter: Standard deviation of vertical centroid coordinates across active strokes
+    - Aspect Ratio: Envelope width-to-height ratio (w / h)
+    - Consistency: Composite inverse-variance metric derived from stroke regularity and baseline stability
+    - Fluidity / Stroke Stability Index: Heuristic estimate of motor continuity (not psychological self-worth)
+
+    SCIENTIFIC NOTE:
+    Evaluates stroke geometry and motor stability computationally. Does not assert physical pen force.
+    """
     def analyze(
         self,
         img: np.ndarray,
@@ -20,7 +34,7 @@ class SignatureAnalyzer:
         prep = preprocess_handwriting_pipeline(img)
         thresh = prep.binary_thresh
 
-        # 1. Distance transform for stroke width & pressure
+        # 1. Distance transform for stroke width & optical pressure proxy
         dist_transform = cv2.distanceTransform(thresh, cv2.DIST_L2, 5)
         stroke_pixels = dist_transform[thresh > 0]
 
@@ -56,15 +70,20 @@ class SignatureAnalyzer:
             slant = "upright"
 
         # 3. Consistency and Baseline Stability
-        if len(prep.contours) > 2:
-            centroids_y = [cv2.moments(c)['m01'] / (cv2.moments(c)['m00'] + 1e-5) for c in prep.contours if cv2.contourArea(c) > 20]
-            baseline_jitter = float(np.std(centroids_y)) if len(centroids_y) > 1 else 10.0
+        valid_contours = [c for c in prep.contours if cv2.contourArea(c) > 20]
+        if len(valid_contours) > 1:
+            centroids_y = []
+            for c in valid_contours:
+                m = cv2.moments(c)
+                if m['m00'] > 0:
+                    centroids_y.append(m['m01'] / m['m00'])
+            baseline_jitter = float(np.std(centroids_y)) if len(centroids_y) > 1 else 8.0
             consistency = int(np.clip(100 - (baseline_jitter * 1.8 + stroke_variance * 8.0), 35, 95))
         else:
             baseline_jitter = 8.0
             consistency = 68
 
-        # 4. Confidence & Stress Indicators
+        # 4. Motor Fluidity & Kinetic Indicators
         pressure_factor = 75 if pressure_level == "medium" else (85 if pressure_level == "high" else 60)
         confidence = int(np.clip((pressure_factor * 0.4) + (consistency * 0.4) + (20 if slant != "left" else 5), 40, 95))
 

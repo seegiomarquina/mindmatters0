@@ -16,17 +16,31 @@ class ReportService:
         signature_data: Optional[Dict[str, Any]],
         typing_data: Optional[Dict[str, Any]],
         handwriting_data: Optional[Dict[str, Any]]
-    ) -> Tuple[int, str, str, Dict[str, Any]]:
+    ) -> Tuple[int, str, str, Dict[str, Any], str, list, list]:
         """
-        Multimodal Sensor Fusion:
-        30% Signature + 40% Typing Cadence + 30% Handwriting Morphology
-        """
-        components = []
-        sig_score = 75.0
-        typ_score = 75.0
-        hw_score = 75.0
+        Multimodal Sensor Fusion Formula:
+        Composite Mind Score (0-100) = 0.30 * S_sig + 0.40 * S_typ + 0.30 * S_hw
 
-        # Signature component
+        Component Scores:
+        1. S_sig (Signature):
+           Derived from stroke stability and motor continuity:
+           S_sig = (confidence * 0.45) + (consistency * 0.45) - ((stress - 50.0) * 0.20)
+        2. S_typ (Typing):
+           Derived from dwell/flight latency and rhythm regularity:
+           S_typ = (focus * 0.65) + ((100.0 - stress) * 0.25) + min(20.0, wpm / 4.0)
+        3. S_hw (Handwriting):
+           Derived from formation consistency and spatial geometry:
+           S_hw = (consistency * 0.80) + (12.0 if spacing in [medium, wide] else 0) + (8.0 if slant in [right, upright] else 0)
+
+        Status Handling:
+        - When all 3 modalities are present: status = 'complete'
+        - When 1 or 2 are missing: status = 'partial_provisional'
+        """
+        modalities_analyzed = []
+        uncalibrated_modalities = []
+        components = []
+
+        # 1. Signature component (Weight: 0.30)
         if signature_data:
             traits = signature_data.get("traits", {})
             conf = float(traits.get("confidence", 75))
@@ -35,8 +49,12 @@ class ReportService:
             sig_score = (conf * 0.45) + (cons * 0.45) - ((stress - 50.0) * 0.20)
             sig_score = float(np_clip(sig_score, 20.0, 99.0))
             components.append((sig_score, 0.30))
+            modalities_analyzed.append("signature")
+        else:
+            sig_score = 75.0
+            uncalibrated_modalities.append("signature")
 
-        # Typing component
+        # 2. Typing component (Weight: 0.40)
         if typing_data:
             focus = float(typing_data.get("focus_score", 75))
             stress = float(typing_data.get("stress_score", 35))
@@ -44,8 +62,12 @@ class ReportService:
             typ_score = (focus * 0.65) + ((100.0 - stress) * 0.25) + (min(20.0, wpm / 4.0))
             typ_score = float(np_clip(typ_score, 20.0, 99.0))
             components.append((typ_score, 0.40))
+            modalities_analyzed.append("typing")
+        else:
+            typ_score = 75.0
+            uncalibrated_modalities.append("typing")
 
-        # Handwriting component
+        # 3. Handwriting component (Weight: 0.30)
         if handwriting_data:
             traits = handwriting_data.get("traits", {})
             consistency = float(traits.get("formation_consistency", 72))
@@ -57,12 +79,22 @@ class ReportService:
             hw_score = (consistency * 0.80) + bonus
             hw_score = float(np_clip(hw_score, 20.0, 99.0))
             components.append((hw_score, 0.30))
+            modalities_analyzed.append("handwriting")
+        else:
+            hw_score = 75.0
+            uncalibrated_modalities.append("handwriting")
 
-        if components:
+        # Status classification
+        if len(modalities_analyzed) == 3:
+            status_str = "complete"
+            mind_score = int(round(0.30 * sig_score + 0.40 * typ_score + 0.30 * hw_score))
+        elif len(modalities_analyzed) > 0:
+            status_str = "partial_provisional"
             total_weight = sum(w for _, w in components)
             mind_score = int(round(sum(s * w for s, w in components) / total_weight))
         else:
-            mind_score = 78
+            status_str = "uncalibrated"
+            mind_score = 74
 
         mind_score = int(np_clip(mind_score, 15, 99))
 
@@ -88,13 +120,14 @@ class ReportService:
 
         # Executive summary text
         summary = (
-            f"Subject exhibits an integrated Mind Score of {mind_score}/100 with classification as '{archetype}'. "
-            f"Kinetic and grapho-motor indicators reflect {cognitive_indices['neuroMotorStability']}% neuro-motor stability, "
-            f"synchronized with an executive control rating of {cognitive_indices['executiveControl']}%. "
+            f"Academic Research Prototype: Subject exhibits an integrated Mind Score of {mind_score}/100 "
+            f"with classification as '{archetype}' [{status_str}]. "
+            f"Kinetic and grapho-motor indicators reflect {cognitive_indices['neuroMotorStability']}% motor consistency, "
+            f"synchronized with an estimated executive control rating of {cognitive_indices['executiveControl']}%. "
             f"Keystroke dynamic latency and stroke geometry indicate robust focus retention with controlled latent stress."
         )
 
-        return mind_score, archetype, summary, cognitive_indices
+        return mind_score, archetype, summary, cognitive_indices, status_str, modalities_analyzed, uncalibrated_modalities
 
     def create_report(
         self,
@@ -118,7 +151,7 @@ class ReportService:
         typ_dict = to_dict(payload.typing_result)
         hw_dict = to_dict(payload.handwriting_result)
 
-        mind_score, archetype, summary, indices = self.calculate_multimodal_mind_score(
+        mind_score, archetype, summary, indices, status_str, analyzed, uncalibrated = self.calculate_multimodal_mind_score(
             signature_data=sig_dict,
             typing_data=typ_dict,
             handwriting_data=hw_dict
@@ -152,7 +185,11 @@ class ReportService:
                 traits_json=json.dumps({
                     "signature": sig_dict,
                     "typing": typ_dict,
-                    "handwriting": hw_dict
+                    "handwriting": hw_dict,
+                    "status": status_str,
+                    "formula_version": "2.1.0-strict",
+                    "modalities_analyzed": analyzed,
+                    "uncalibrated_modalities": uncalibrated
                 }),
                 pdf_filename=pdf_filename,
                 pdf_path=pdf_path,
@@ -167,7 +204,11 @@ class ReportService:
             mind_score=mind_score,
             dominant_archetype=archetype,
             executive_summary=summary,
-            download_url=download_url
+            download_url=download_url,
+            status=status_str,
+            formula_version="2.1.0-strict",
+            modalities_analyzed=analyzed,
+            uncalibrated_modalities=uncalibrated
         )
 
 def np_clip(val: float, low: float, high: float) -> float:

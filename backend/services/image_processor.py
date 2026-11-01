@@ -52,31 +52,77 @@ def validate_and_save_upload(file: UploadFile, sample_type: str = "handwriting")
     
     return stored_filename, file_path, file_size, content_type
 
-def decode_image_from_bytes(image_bytes: bytes) -> np.ndarray:
-    """Safe server-side OpenCV image decoding."""
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+def validate_image_matrix(img: np.ndarray) -> np.ndarray:
+    """
+    Validates decoded image array:
+    1. Checks minimum dimensions (width >= 50, height >= 50).
+    2. Validates contrast dynamic range.
+    3. Rejects blank/uniform canvases (standard deviation check).
+    4. Rejects images with negligible or saturated foreground ink.
+    """
     if img is None or img.size == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Failed to decode image. Corrupted or invalid image data."
         )
+
+    h, w = img.shape[:2]
+    if h < 50 or w < 50:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Image dimensions ({w}x{h}) too small for morphological extraction. Minimum dimensions: 50x50 pixels."
+        )
+
+    # Convert to grayscale for metric evaluations
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
+
+    # Dynamic range test
+    dynamic_range = int(np.max(gray)) - int(np.min(gray))
+    if dynamic_range < 15:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Image has insufficient contrast or dynamic range (near-uniform canvas)."
+        )
+
+    # Intensity variance test (detects solid white/black/gray blocks)
+    std_dev = float(np.std(gray))
+    if std_dev < 3.0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Blank or featureless image detected (insufficient pixel variance)."
+        )
+
+    # Otsu foreground ink presence test
+    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    ink_ratio = float(np.sum(thresh > 0)) / float(thresh.size)
+    if ink_ratio < 0.0005:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Blank or non-informative image detected. Minimum foreground ink density (0.05%) not met."
+        )
+    if ink_ratio > 0.995:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Overexposed or completely saturated image detected. Maximum ink threshold exceeded."
+        )
+
     return img
 
+def decode_image_from_bytes(image_bytes: bytes) -> np.ndarray:
+    """Safe server-side OpenCV image decoding."""
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    return validate_image_matrix(img)
+
 def decode_image_from_path(file_path: str) -> np.ndarray:
-    """Load image from disk file path."""
+    """Load image from disk file path and validate."""
     if not os.path.exists(file_path):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Image file not found at {file_path}"
         )
     img = cv2.imread(file_path, cv2.IMREAD_COLOR)
-    if img is None or img.size == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to read image from disk."
-        )
-    return img
+    return validate_image_matrix(img)
 
 class PreprocessedImageData:
     def __init__(
@@ -113,6 +159,8 @@ def preprocess_handwriting_pipeline(img: np.ndarray) -> PreprocessedImageData:
     Grayscale -> Blur check -> Denoising -> Contrast Normalization (CLAHE) ->
     Thresholding (Otsu + Adaptive) -> Deskew -> Connected Components & Contours.
     """
+    img = validate_image_matrix(img)
+
     # 1. Grayscale Conversion
     if len(img.shape) == 3:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

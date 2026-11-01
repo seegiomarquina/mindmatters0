@@ -5,9 +5,24 @@ from sqlalchemy.orm import Session
 from schemas.typing import (
     KeystrokeItem, TypingAnalysisResponse, TypingMeasurableFeatures
 )
+from fastapi import HTTPException, status
 from db.models import Analysis, ExtractedFeatures
 
 class TypingAnalyzer:
+    """
+    Keystroke Dynamics & Temporal Telemetry Engine.
+    
+    Extracts cognitive cadence and motor timing metrics from raw browser keyboard events:
+    - Dwell Time: Duration between keydown and keyup for each key (t_up - t_down)
+    - Flight Time: Inter-key latency between consecutive keyup and the next keydown (t_down[i] - t_up[i-1])
+    - Cadence Shannon Entropy: H = -sum(p_i * log2(p_i)) of flight-time distribution, measuring rhythmic predictability
+    - Typing Speed (WPM): Standardized words-per-minute = (total_keys / 5.0) / (duration_minutes)
+    - Hesitation Frequency: Count of inter-key flight transitions exceeding 400ms cognitive latency
+    - Motor Regularity / Focus Index: Variance-penalized score derived from dwell and flight consistency
+
+    VALIDATION:
+    Enforces keyup >= keydown, filters negative/zero durations, and requires at least 2 valid events.
+    """
     def analyze(
         self,
         keystrokes: List[KeystrokeItem],
@@ -15,13 +30,30 @@ class TypingAnalyzer:
         db: Optional[Session] = None
     ) -> TypingAnalysisResponse:
         if not keystrokes or len(keystrokes) < 2:
-            return TypingAnalysisResponse(
-                avg_dwell_time_ms=85.0,
-                avg_flight_time_ms=120.0,
-                backspace_rate=0.04,
-                typing_speed_wpm=45.0,
-                stress_score=40,
-                focus_score=75
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Keystroke sequence must contain at least 2 events."
+            )
+
+        # 1. Filter and validate monotonic timestamp events
+        valid_keys = []
+        for k in keystrokes:
+            if not k.key:
+                continue
+            if k.keydown is None or k.keyup is None:
+                continue
+            # Monotonicity check: keyup must be >= keydown
+            if k.keyup < k.keydown:
+                continue
+            duration = k.keyup - k.keydown
+            if duration <= 0:
+                continue
+            valid_keys.append(k)
+
+        if len(valid_keys) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Insufficient valid keystroke events. At least 2 events with keyup >= keydown and duration > 0 are required."
             )
 
         dwell_times = []
@@ -29,10 +61,12 @@ class TypingAnalyzer:
         backspace_count = 0
         hesitation_count = 0
 
-        sorted_keys = sorted(keystrokes, key=lambda k: k.keydown)
+        # Sort strictly by keydown timestamp
+        sorted_keys = sorted(valid_keys, key=lambda k: k.keydown)
 
         for i, k in enumerate(sorted_keys):
-            dwell = max(10.0, min(k.keyup - k.keydown, 1000.0))
+            # Clamp dwell to physiological limits [15ms, 1200ms]
+            dwell = max(15.0, min(k.keyup - k.keydown, 1200.0))
             dwell_times.append(dwell)
 
             if k.key in ["Backspace", "Delete"]:
@@ -40,6 +74,7 @@ class TypingAnalyzer:
 
             if i > 0:
                 prev_k = sorted_keys[i - 1]
+                # Clamped inter-key flight time (rollover typing handles negative as 0ms)
                 flight = max(0.0, min(k.keydown - prev_k.keyup, 2500.0))
                 flight_times.append(flight)
                 if flight > 400.0:
@@ -49,11 +84,11 @@ class TypingAnalyzer:
         avg_flight = float(np.mean(flight_times)) if flight_times else 110.0
         backspace_rate = float(backspace_count / len(sorted_keys)) if sorted_keys else 0.0
 
-        # WPM computation
-        total_duration_ms = max(1000.0, sorted_keys[-1].keyup - sorted_keys[0].keydown)
+        # WPM computation: standard 5 keystrokes per word
+        total_duration_ms = max(500.0, sorted_keys[-1].keyup - sorted_keys[0].keydown)
         total_duration_min = total_duration_ms / 60000.0
         wpm = float((len(sorted_keys) / 5.0) / total_duration_min)
-        wpm = round(float(np.clip(wpm, 10.0, 140.0)), 1)
+        wpm = round(float(np.clip(wpm, 5.0, 160.0)), 1)
 
         dwell_std = float(np.std(dwell_times)) if len(dwell_times) > 1 else 15.0
         flight_std = float(np.std(flight_times)) if len(flight_times) > 1 else 30.0

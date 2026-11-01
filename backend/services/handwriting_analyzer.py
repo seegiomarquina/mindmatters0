@@ -10,6 +10,26 @@ from services.image_processor import PreprocessedImageData, preprocess_handwriti
 from db.models import Sample, Analysis, ExtractedFeatures
 
 class HandwritingAnalyzer:
+    """
+    Morphological Computer Vision Analyzer for Handwriting Samples.
+    
+    Extracts 10+ measurable physical and spatial geometry features using OpenCV & NumPy:
+    - Slant Angle: Median orientation via ellipse fitting on character contours
+    - Ink Density: Ratio of binarized foreground ink pixels to the active writing bounding envelope
+    - Writing Area Ratio: Ratio of active writing bounding envelope to total scan area
+    - Component Count: Filtered connected components satisfying valid letter size thresholds
+    - Average Character Dimensions: Mean and std of component bounding rectangles
+    - Spatial Gaps: Horizontal inter-character / inter-word spacing on common baselines
+    - Line Spacing: Mean inter-line valleys from horizontal projection histograms
+    - Baseline Slope & Jitter: Linear regression (y = mx + c) across text baseline anchors and residual RMSE
+    - Contour Complexity: Isoperimetric quotient Q = P^2 / (4 * pi * A) measuring loop convolutions
+    - Stroke Width Proxy: Euclidean distance transform (L2) estimating line thickness in pixels
+    - Regularity Score: Coefficient of variation composite stability metric (0-100 scale)
+
+    SCIENTIFIC NOTE (Viva / Academic Evaluation):
+    Normal 2D optical scans cannot measure physical pen force (Newtons). The 'pressure_proxy'
+    metric strictly represents an optical line-thickness estimation derived via distance transform.
+    """
     def extract_features(self, prep: PreprocessedImageData) -> Tuple[MeasurableFeatures, HandwritingTraits, str, float]:
         thresh = prep.binary_thresh
         h_page, w_page = thresh.shape[:2]
