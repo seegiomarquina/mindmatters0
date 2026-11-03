@@ -77,11 +77,11 @@ export const StylesSection: React.FC = () => {
         </div>
 
         {/* Stack of 2, 2, and 2: Responsive 2-column grid across 3 rows */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="traditions-grid grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
           {TRADITIONS.map((item, index) => (
             <div
               key={item.id}
-              className="style-card antigravity bg-white/90 backdrop-blur-sm border border-[#1B1B2F]/12 rounded-sm p-7 sm:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group relative overflow-hidden flex flex-col justify-between"
+              className="tradition-card style-card antigravity bg-white/90 backdrop-blur-sm border border-[#1B1B2F]/12 rounded-sm p-7 sm:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group relative overflow-hidden flex flex-col justify-between"
               data-depth={item.depth}
             >
               <div>
